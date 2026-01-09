@@ -1,4 +1,4 @@
-from service.utils import sign, refresh_cookie, format_json_dict, read_cookie
+from service.utils import sign, refresh_cookie, format_json_dict, read_cookie, parse_note_html
 from curl_cffi import requests, Response
 from typing import Optional
 from fastapi import Query
@@ -135,7 +135,22 @@ class XhsLogic:
             "xsec_token": xsec_token
         }
         result_json: dict = self._request(uri="/api/sns/web/v1/feed", data=data, method="POST")
-        return result_json
+        return result_json.get("data", {})
+
+    def get_note_by_html(self, note_id: str, xsec_token: str, xsec_source: str = "pc_feed") -> dict:
+        """
+        获取笔记详情（从HTML中拿，无需Cookie）
+        :param note_id: 笔记ID
+        :param xsec_token: xsec_token
+        :param xsec_source: xsec_source
+        :return:
+        """
+        response: Response = requests.get(
+            proxy=self.proxy,
+            headers={"user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36"},
+            url=f"https://www.xiaohongshu.com/discovery/item/{note_id}?xsec_token={xsec_token}&xsec_source={xsec_source}"
+        )
+        return parse_note_html(html=response.text)
 
     def get_comment_list(self, note_id: str, xsec_token: str, cursor: str = "") -> dict:
         """

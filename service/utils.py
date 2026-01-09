@@ -4,7 +4,7 @@ from typing import Optional
 from loguru import logger
 import json
 import os
-
+import re
 
 
 def format_json_dict(data: dict) -> str:
@@ -92,3 +92,17 @@ def sign(uri: str, cookies: dict, data: dict = None, params: dict = None, method
     else:
         raise Exception("请求方式错误")
     return headers
+
+
+def parse_note_html(html: str) -> Optional[dict]:
+    """
+    解析HTML帖子详情
+    :param html: 帖子HTML源码
+    :return:
+    """
+    match = re.search(r"window\.__SETUP_SERVER_STATE__\s*=\s*(.*?)</script>", html, re.DOTALL | re.IGNORECASE)
+    if match:
+        return json.loads(match.group(1)).get("LAUNCHER_SSR_STORE_PAGE_DATA", {})
+    else:
+        logger.warning("HTML中未找到帖子信息！")
+        return None

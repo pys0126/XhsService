@@ -1,4 +1,5 @@
 from service.logic import XhsLogic
+import json
 
 
 xhs_logic: XhsLogic = XhsLogic()
@@ -9,6 +10,7 @@ xhs_logic: XhsLogic = XhsLogic()
 
 # 获取笔记详情
 # response = xhs_logic.get_note_by_id(note_id="6809bac8000000000b01ee79", xsec_token="AB7lrCWslhUrZJqf-QuwYLVPL_B26kNuPVyoooytH9UDI=")
+# print(response)
 
 # 获取评论列表
 # response = xhs_logic.get_comment_list(note_id="6954bbec0000000022033432", xsec_token="ABUN_1XSqLnjriCqCbVauqogsQ7WUawkzwAIqmfpI8Jfo=")
@@ -19,3 +21,9 @@ xhs_logic: XhsLogic = XhsLogic()
 #                                           xsec_token="ABUN_1XSqLnjriCqCbVauqogsQ7WUawkzwAIqmfpI8Jfo=",
 #                                           cursor="695ee1330000000016024111")
 # print(response.get("comments", []))
+
+# 获取笔记详情（HTML版）
+response = xhs_logic.get_note_by_html(note_id="6809bac8000000000b01ee79", xsec_token="AB7lrCWslhUrZJqf-QuwYLVPL_B26kNuPVyoooytH9UDI=")
+print(response)
+with open("structure/user_notes.json", "w", encoding="utf-8") as f:
+    f.write(json.dumps(response, ensure_ascii=False, indent=4))

@@ -1,0 +1,121 @@
+from typing import Optional
+from urllib.parse import urlparse, parse_qs
+from curl_cffi import Response, requests
+from service.logic import XhsLogic
+from loguru import logger
+import typer
+import os
+
+
+def parse_url_params(url: str) -> dict:
+    """
+    解析 URL 参数
+    :param url: GET请求URL
+    :return: 参数字典
+    """
+    parsed = urlparse(url)
+    params = parse_qs(parsed.query, keep_blank_values=True)
+    return {k: v[0] if len(v) == 1 else v for k, v in params.items()}
+
+
+class Download(object):
+    def __init__(self, proxy: str = None, save_dir: str = "downloads") -> None:
+        """
+        XHS下载工具
+        :param proxy: 设置代理，例：http://127.0.0.1:7897
+        :param save_dir: 文件保存目录
+        """
+        self.headers: dict = {
+            "user-agent": "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36"
+        }
+        self.xhs_logic: XhsLogic = XhsLogic(proxy=proxy)
+        self.save_dir: str = save_dir
+        os.makedirs(self.save_dir, exist_ok=True)
+
+    def note_veideo(self, url: str) -> None:
+        """
+        下载笔记原画视频
+        :param url: 笔记完整URL，例：https://www.xiaohongshu.com/explore/64565216000000002702b26b?xsec_token=ABcnmyqK0A3I-Ij84SirZ0QbSVnd9SuWIv0Y00JRvMm4s=&xsec_source=pc_feed
+        :return:
+        """
+        params: dict = parse_url_params(url)
+        result_json: dict = self.xhs_logic.get_note_by_html(
+            note_id=params.get("note_id"), xsec_token=params.get("xsec_token"), xsec_source=params.get("xsec_source"))
+        # 提取视频键值
+        note_info: dict = result_json.get("noteData", {})
+        video_key: str = note_info.get("video", {}).get("consumer", {}).get("originVideoKey", "")
+        if not video_key:
+            logger.error("笔记中未找到视频！")
+            return None
+        response: Response = requests.get(
+            url="http://sns-video-hs.xhscdn.com/" + video_key,
+            headers=self.headers
+        )
+        if response.status_code != 200:
+            logger.error(f"视频下载失败，状态码：{response.status_code}")
+            return None
+        save_dir: str = os.path.join(self.save_dir, "video")
+        os.makedirs(save_dir, exist_ok=True)
+        save_path: str = os.path.join(save_dir, f"{note_info.get('title')}.mp4")
+        with open(save_path, "wb") as f:
+            f.write(response.content)
+        logger.success(f"【{note_info.get('title')}】视频保存成功：{save_path}")
+
+    def note_images(self, url: str) -> None:
+        """
+        下载笔记无水印图片
+        :param url: 笔记完整URL，例：https://www.xiaohongshu.com/explore/64565216000000002702b26b?xsec_token=ABcnmyqK0A3I-Ij84SirZ0QbSVnd9SuWIv0Y00JRvMm4s=&xsec_source=pc_feed
+        :return:
+        """
+        params: dict = parse_url_params(url)
+        result_json: dict = self.xhs_logic.get_note_by_html(
+            note_id=params.get("note_id"), xsec_token=params.get("xsec_token"), xsec_source=params.get("xsec_source"))
+        # 获取图片URL列表
+        note_info: dict = result_json.get("noteData", {})
+        image_urls: list = [image.get("url", "") for image in note_info.get("imageList", [])]
+        save_dir: str = os.path.join(self.save_dir, "image", note_info.get("title"))
+        os.makedirs(save_dir, exist_ok=True)
+        for index, image_url in enumerate(image_urls, 1):
+            response: Response = requests.get(
+                url=image_url,
+                headers=self.headers
+            )
+            if response.status_code != 200:
+                logger.warning(f"第 {index} 张图片下载失败！")
+                continue
+            save_path: str = os.path.join(save_dir, f"{index}.jpg")
+            with open(save_path, "wb") as f:
+                f.write(response.content)
+            logger.success(f"【{note_info.get('title')}】第 {index} 张图片保存成功：{os.path.abspath(save_path)}")
+        print(f"【{note_info.get('title')}】图片下载完毕！")
+
+
+app = typer.Typer(help="XHS下载工具 - UodRad")
+
+
+@app.command()
+def download_video(
+    url: str = typer.Argument(..., help="笔记完整URL，例：https://www.xiaohongshu.com/explore/64565216000000002702b26b?xsec_token=ABcnmyqK0A3I-Ij84SirZ0QbSVnd9SuWIv0Y00JRvMm4s=&xsec_source=pc_feed"),
+    proxy: Optional[str] = typer.Option(None, help="设置代理，例：http://127.0.0.1:7897"),
+    save_dir: str = typer.Option("downloads", help="文件保存目录")
+):
+    """
+    下载笔记原画视频
+    """
+    Download(proxy=proxy, save_dir=save_dir).note_veideo(url)
+
+
+@app.command()
+def download_images(
+    url: str = typer.Argument(..., help="笔记完整URL，例：https://www.xiaohongshu.com/explore/64565216000000002702b26b?xsec_token=ABcnmyqK0A3I-Ij84SirZ0QbSVnd9SuWIv0Y00JRvMm4s=&xsec_source=pc_feed"),
+    proxy: Optional[str] = typer.Option(None, help="设置代理，例：http://127.0.0.1:7897"),
+    save_dir: str = typer.Option("downloads", help="文件保存目录")
+):
+    """
+    下载笔记无水印图片
+    """
+    Download(proxy=proxy, save_dir=save_dir).note_images(url)
+
+
+if __name__ == "__main__":
+    app()

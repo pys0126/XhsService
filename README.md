@@ -15,7 +15,9 @@
 - uvicorn
 - orjson
 - DrissionPage
+- DrissionRecord
 - pyexecjs
+- typer
 
 ## 安装依赖
 
@@ -75,9 +77,9 @@ response = xhs_logic.get_comment_list(
 print(response.get("comments", []))
 ```
 
-## 已有 API 接口
+## 常用 API 接口
 
-接口详细文档可访问 `http://127.0.0.1:6868/docs`
+更多接口文档可访问 `http://127.0.0.1:6868/docs` ，返回的数据结构查看 `structure` 文件夹中的JSON文件。
 
 **注意：每个接口都支持传入 `proxy` 参数，用于设置代理。**
 
@@ -86,7 +88,7 @@ print(response.get("comments", []))
 GET /send_phone_code?phone={phone_number}
 ```
 
-### 手机号登录
+### 手机号登录（自动更新cookie.json）
 ```
 GET /phone_login?phone={phone_number}&code={verification_code}
 ```
@@ -94,6 +96,11 @@ GET /phone_login?phone={phone_number}&code={verification_code}
 ### 获取用户笔记列表
 ```
 GET /get_user_notes?user_id={user_id}&xsec_token={xsec_token}[&xsec_source=pc_note][&cursor={cursor}]
+```
+
+### 获取笔记详情（从手机端HTML中拿，无需Cookie，好像也不会风控）
+```
+GET /get_note_by_html?note_id={note_id}&xsec_token={xsec_token}[&xsec_source=pc_user]
 ```
 
 ### 获取笔记详情
@@ -120,7 +127,7 @@ GET /get_sub_comment_list?note_id={note_id}&comment_id={comment_id}&xsec_token={
 **注意：如果通过手机号登录接口获取会自动保存到该文件中。**
 
 ### 代理配置
-可在调用时传入 `proxy` 参数，例如：
+可在调用API时传入 `proxy` 参数；如果使用代码调用，参考：
 ```python
 xhs_logic = XhsLogic(proxy="http://127.0.0.1:7897")
 ```
@@ -129,6 +136,7 @@ xhs_logic = XhsLogic(proxy="http://127.0.0.1:7897")
 
 `XhsLogic` 类封装专用请求内置的请求方法 `_reuqest`，自动生成签名和请求逻辑，可自行添加更多方法。
 
+`service/utils.py` 中的 `refresh_cookie` 函数可以调用 `DrissionPage` 去自动获取Cookie，并保存到 `cookies.json` 文件中。
 
 ## 注意事项
 

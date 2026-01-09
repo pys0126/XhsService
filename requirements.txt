@@ -1,7 +1,9 @@
 fastapi-offline
 curl_cffi
 DrissionPage
+DrissionRecord
 pyexecjs
 loguru
 orjson
 uvicorn
+typer

@@ -12,7 +12,7 @@ def send_phone_code(phone: str, xhs_logic: XhsLogic = Depends(get_xhs_logic)) ->
     return ResponseUtil(*SUCCESS, data=xhs_logic.send_phone_code(phone)).success()
 
 
-@router.get("/phone_login", summary="手机号登录")
+@router.get("/phone_login", summary="手机号登录（自动更新cookie.json）")
 def phone_login(phone: str, code: str, xhs_logic: XhsLogic = Depends(get_xhs_logic)) -> ORJSONResponse:
     return ResponseUtil(*SUCCESS, data=xhs_logic.phone_login(phone, code)).success()
 
@@ -29,6 +29,12 @@ def get_user_notes(user_id: str, xsec_token: str, xsec_source: str = Query(defau
 def get_note_by_id(note_id: str, xsec_token: str, xsec_source: str = Query(default="pc_user"),
                    xhs_logic: XhsLogic = Depends(get_xhs_logic)) -> ORJSONResponse:
     return ResponseUtil(*SUCCESS, data=xhs_logic.get_note_by_id(note_id, xsec_token, xsec_source)).success()
+
+
+@router.get("/get_note_by_html", summary="获取笔记详情（从手机端HTML中拿，无需Cookie，好像也不会风控）")
+def get_note_by_html(note_id: str, xsec_token: str, xsec_source: str = Query(default="pc_feed"),
+                     xhs_logic: XhsLogic = Depends(get_xhs_logic)) -> ORJSONResponse:
+    return ResponseUtil(*SUCCESS, data=xhs_logic.get_note_by_html(note_id, xsec_token, xsec_source)).success()
 
 
 @router.get("/get_comment_list", summary="获取评论列表",
