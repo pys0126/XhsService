@@ -51,7 +51,7 @@ python main.py pro
 ```python
 from service.logic import XhsLogic
 
-xhs_logic = XhsLogic()
+xhs_logic = XhsLogic()  # 采集方法都封装在该类中
 
 # 获取用户笔记列表
 response = xhs_logic.get_user_notes(
