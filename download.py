@@ -40,13 +40,17 @@ class Download(object):
         """
         params: dict = parse_url_params(url)
         result_json: dict = self.xhs_logic.get_note_by_html(
-            note_id=params.get("note_id"), xsec_token=params.get("xsec_token"), xsec_source=params.get("xsec_source"))
+            note_id=url.split("?")[0].split("/")[-1],
+            xsec_token=params.get("xsec_token"),
+            xsec_source=params.get("xsec_source")
+        )
         # 提取视频键值
         note_info: dict = result_json.get("noteData", {})
         video_key: str = note_info.get("video", {}).get("consumer", {}).get("originVideoKey", "")
         if not video_key:
             logger.error("笔记中未找到视频！")
             return None
+        logger.info(f"【{note_info.get('title')}】已获取到笔记数据，正在下载视频...")
         response: Response = requests.get(
             url="http://sns-video-hs.xhscdn.com/" + video_key,
             headers=self.headers
@@ -59,7 +63,7 @@ class Download(object):
         save_path: str = os.path.join(save_dir, f"{note_info.get('title')}.mp4")
         with open(save_path, "wb") as f:
             f.write(response.content)
-        logger.success(f"【{note_info.get('title')}】视频保存成功：{save_path}")
+        logger.success(f"【{note_info.get('title')}】视频保存成功：{os.path.abspath(save_path)}")
 
     def note_images(self, url: str) -> None:
         """
@@ -69,12 +73,16 @@ class Download(object):
         """
         params: dict = parse_url_params(url)
         result_json: dict = self.xhs_logic.get_note_by_html(
-            note_id=params.get("note_id"), xsec_token=params.get("xsec_token"), xsec_source=params.get("xsec_source"))
+            note_id=url.split("?")[0].split("/")[-1],
+            xsec_token=params.get("xsec_token"),
+            xsec_source=params.get("xsec_source")
+        )
         # 获取图片URL列表
         note_info: dict = result_json.get("noteData", {})
         image_urls: list = [image.get("url", "") for image in note_info.get("imageList", [])]
         save_dir: str = os.path.join(self.save_dir, "image", note_info.get("title"))
         os.makedirs(save_dir, exist_ok=True)
+        logger.info(f"【{note_info.get('title')}】已获取到笔记数据，开始下载图片...")
         for index, image_url in enumerate(image_urls, 1):
             response: Response = requests.get(
                 url=image_url,
@@ -86,14 +94,14 @@ class Download(object):
             save_path: str = os.path.join(save_dir, f"{index}.jpg")
             with open(save_path, "wb") as f:
                 f.write(response.content)
-            logger.success(f"【{note_info.get('title')}】第 {index} 张图片保存成功：{os.path.abspath(save_path)}")
-        print(f"【{note_info.get('title')}】图片下载完毕！")
+            logger.info(f"【{note_info.get('title')}】第 {index} 张图片保存成功：{os.path.abspath(save_path)}")
+        logger.success(f"【{note_info.get('title')}】图片下载完毕：{os.path.abspath(save_dir)}")
 
 
 app = typer.Typer(help="XHS下载工具 - UodRad")
 
 
-@app.command()
+@app.command(name="video")
 def download_video(
     url: str = typer.Argument(..., help="笔记完整URL，例：https://www.xiaohongshu.com/explore/64565216000000002702b26b?xsec_token=ABcnmyqK0A3I-Ij84SirZ0QbSVnd9SuWIv0Y00JRvMm4s=&xsec_source=pc_feed"),
     proxy: Optional[str] = typer.Option(None, help="设置代理，例：http://127.0.0.1:7897"),
@@ -102,10 +110,13 @@ def download_video(
     """
     下载笔记原画视频
     """
-    Download(proxy=proxy, save_dir=save_dir).note_veideo(url)
+    try:
+        Download(proxy=proxy, save_dir=save_dir).note_veideo(url)
+    except Exception:
+        logger.error("下载失败，重新跑一次试试，嘿嘿~")
 
 
-@app.command()
+@app.command(name="images")
 def download_images(
     url: str = typer.Argument(..., help="笔记完整URL，例：https://www.xiaohongshu.com/explore/64565216000000002702b26b?xsec_token=ABcnmyqK0A3I-Ij84SirZ0QbSVnd9SuWIv0Y00JRvMm4s=&xsec_source=pc_feed"),
     proxy: Optional[str] = typer.Option(None, help="设置代理，例：http://127.0.0.1:7897"),
@@ -114,7 +125,10 @@ def download_images(
     """
     下载笔记无水印图片
     """
-    Download(proxy=proxy, save_dir=save_dir).note_images(url)
+    try:
+        Download(proxy=proxy, save_dir=save_dir).note_images(url)
+    except Exception:
+        logger.error("下载失败，重新跑一次试试，嘿嘿~")
 
 
 if __name__ == "__main__":

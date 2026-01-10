@@ -2,6 +2,8 @@ from service.encryption import generate_headers, splice_str
 from DrissionPage import Chromium, ChromiumOptions
 from typing import Optional
 from loguru import logger
+from pathlib import Path
+import platform
 import json
 import os
 import re
@@ -60,10 +62,14 @@ def refresh_cookie(proxy: str = None, cookies_path: str = "cookies.json", browse
         options.set_proxy(proxy)
     logger.info("【DrissionPage】启动无头浏览器...")
     try:
-        browse = Chromium(ChromiumOptions().set_browser_path(browser_path))
+        browse = Chromium(options)
     except Exception:  # 找不到chrome，尝试使用brave-browser
         logger.warning("【DrissionPage】未找到Chrome浏览器，尝试使用Brave浏览器...")
-        browse = Chromium(ChromiumOptions().set_browser_path("brave-browser"))
+        if platform.system() == "Linux":
+            options.set_browser_path("brave-browser")
+        elif platform.system() == "Windows":
+            options.set_browser_path(f"{str(Path.home())}/AppData/Local/BraveSoftware/Brave-Browser/Application/brave.exe")
+        browse = Chromium(options)
     tab = browse.latest_tab
     logger.info("【DrissionPage】访问小红书主页，获取Cookie...")
     tab.get("https://www.xiaohongshu.com")

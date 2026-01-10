@@ -23,5 +23,5 @@ xhs_logic: XhsLogic = XhsLogic()
 # print(response.get("comments", []))
 
 # 获取笔记详情（HTML版）
-response = xhs_logic.get_note_by_html(note_id="6809bac8000000000b01ee79", xsec_token="AB7lrCWslhUrZJqf-QuwYLVPL_B26kNuPVyoooytH9UDI=")
+response = xhs_logic.get_note_by_html(note_id="64789cb40000000014024c45", xsec_token="ABzAhu8qQ1S24JcioVxkWeNdoz5pZuqC_GQiBFrQR1aEQ=")
 print(response)

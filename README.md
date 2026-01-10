@@ -105,10 +105,10 @@ print(response.get("comments", []))
 **完整示例：**
 ```bash
 # 使用代理下载视频（原画）到指定目录
-python download.py download-video "笔记URL" --proxy http://127.0.0.1:7897 --save-dir my_videos
+python download.py video "笔记完整URL" --proxy http://127.0.0.1:7897 --save-dir my_videos
 
 # 使用代理下载图片（无水印）到指定目录
-python download.py download-images "笔记URL" --proxy http://127.0.0.1:7897 --save-dir my_images
+python download.py images "笔记完整URL" --proxy http://127.0.0.1:7897 --save-dir my_images
 ```
 
 **说明：**
