@@ -25,5 +25,3 @@ xhs_logic: XhsLogic = XhsLogic()
 # 获取笔记详情（HTML版）
 response = xhs_logic.get_note_by_html(note_id="6809bac8000000000b01ee79", xsec_token="AB7lrCWslhUrZJqf-QuwYLVPL_B26kNuPVyoooytH9UDI=")
 print(response)
-with open("structure/user_notes.json", "w", encoding="utf-8") as f:
-    f.write(json.dumps(response, ensure_ascii=False, indent=4))
