@@ -1,9 +1,11 @@
-from typing import Optional
 from urllib.parse import urlparse, parse_qs
 from curl_cffi import Response, requests
 from service.logic import XhsLogic
+from typing import Optional
 from loguru import logger
+from random import choice
 import typer
+import time
 import os
 
 
@@ -116,6 +118,32 @@ def download_video(
         logger.error("下载失败，重新跑一次试试，嘿嘿~")
 
 
+@app.command(name="batch-video")
+def download_batch_video(
+    url_file: str = typer.Argument(..., help="笔记URL列表TXT文件，每行一个笔记URL，例：https://www.xiaohongshu.com/explore/64565216000000002702b26b?xsec_token=ABcnmyqK0A3I-Ij84SirZ0QbSVnd9SuWIv0Y00JRvMm4s=&xsec_source=pc_feed"),
+    proxy: Optional[str] = typer.Option()
+):
+    """
+    批量下载笔记原画视频
+    """
+    try:
+        with open(url_file, "r", encoding="utf-8") as f:
+            urls: list = [url.strip() for url in f.readlines()]
+        for url in urls:
+            logger.info(f"开始下载：{url}")
+            try:
+                Download(proxy=proxy).note_veideo(url)
+            except Exception:
+                logger.error(f"当前笔记下载失败，待会重新跑一次试试，笔记URL：{url}")
+                continue
+            logger.info("防止过度采集，随机休眠1-3秒...")
+            time.sleep(choice([1, 3]))  # 随机休眠1-3秒
+            print()
+    except Exception:
+        logger.error("读取笔记URL列表文件失败，请检查文件路径或内容是否正确！")
+        return None
+
+
 @app.command(name="images")
 def download_images(
     url: str = typer.Argument(..., help="笔记完整URL，例：https://www.xiaohongshu.com/explore/64565216000000002702b26b?xsec_token=ABcnmyqK0A3I-Ij84SirZ0QbSVnd9SuWIv0Y00JRvMm4s=&xsec_source=pc_feed"),
@@ -129,6 +157,32 @@ def download_images(
         Download(proxy=proxy, save_dir=save_dir).note_images(url)
     except Exception:
         logger.error("下载失败，重新跑一次试试，嘿嘿~")
+
+
+@app.command(name="batch-images")
+def download_batch_images(
+    url_file: str = typer.Argument(..., help="笔记URL列表TXT文件，每行一个笔记URL，例：https://www.xiaohongshu.com/explore/64565216000000002702b26b?xsec_token=ABcnmyqK0A3I-Ij84SirZ0QbSVnd9SuWIv0Y00JRvMm4s=&xsec_source=pc_feed"),
+    proxy: Optional[str] = typer.Option()
+):
+    """
+    批量下载笔记原画视频
+    """
+    try:
+        with open(url_file, "r", encoding="utf-8") as f:
+            urls: list = [url.strip() for url in f.readlines()]
+        for url in urls:
+            logger.info(f"开始下载：{url}")
+            try:
+                Download(proxy=proxy).note_images(url)
+            except Exception:
+                logger.error(f"当前笔记下载失败，待会重新跑一次试试，笔记URL：{url}")
+                continue
+            logger.info("防止过度采集，随机休眠1-3秒...")
+            time.sleep(choice([1, 3]))  # 随机休眠1-3秒
+            print()
+    except Exception:
+        logger.error("读取笔记URL列表文件失败，请检查文件路径或内容是否正确！")
+        return None
 
 
 if __name__ == "__main__":
