@@ -165,7 +165,7 @@ def download_batch_images(
     proxy: Optional[str] = typer.Option()
 ):
     """
-    批量下载笔记原画视频
+    批量下载笔记无水印图片
     """
     try:
         with open(url_file, "r", encoding="utf-8") as f:

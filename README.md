@@ -94,13 +94,14 @@ print(response.get("comments", []))
 
 ### 3. 使用命令行下载
 
-#### 下载笔记视频（原画质）
 使用 `python` 执行 `download.py` 脚本（依赖 `typer` 库）
 
 #### 可选参数
 
 - `--proxy`：设置代理，例如 `--proxy http://127.0.0.1:7897`
 - `--save-dir`：指定保存目录，默认为 `./downloads`
+
+#### 单个下载
 
 **完整示例：**
 ```bash
@@ -111,10 +112,23 @@ python download.py video "笔记完整URL" --proxy http://127.0.0.1:7897 --save-
 python download.py images "笔记完整URL" --proxy http://127.0.0.1:7897 --save-dir my_images
 ```
 
+#### 批量下载
+
+**完整示例：**
+```bash
+# 批量下载视频（从URL列表文件中逐行读取笔记URL进行下载）
+python download.py batch-video urls.txt --proxy http://127.0.0.1:7897
+
+# 批量下载图片（从URL列表文件中逐行读取笔记URL进行下载）
+python download.py batch-images urls.txt --proxy http://127.0.0.1:7897
+```
+
 **说明：**
 - 视频文件保存在：`{save_dir}/video/` 目录下
 - 图片文件保存在：`{save_dir}/image/{笔记标题}/` 目录下
 - 下载的视频为原画质，图片为无水印版本
+- 批量下载功能需要提供一个文本文件，其中每行包含一个笔记URL
+- 批量下载过程中会随机休眠1-3秒以防止过度采集
 
 
 ## 配置文件
