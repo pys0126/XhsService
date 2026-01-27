@@ -125,7 +125,7 @@ python download.py batch-images urls.txt --proxy http://127.0.0.1:7897
 
 **说明：**
 - 视频文件保存在：`{save_dir}/video/` 目录下
-- 图片文件保存在：`{save_dir}/image/{笔记标题}/` 目录下
+- 图片文件保存在：`{save_dir}/image/{作者名称}/` 目录下
 - 下载的视频为原画质，图片为无水印版本
 - 批量下载功能需要提供一个文本文件，其中每行包含一个笔记URL
 - 批量下载过程中会随机休眠1-3秒以防止过度采集
