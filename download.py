@@ -8,6 +8,7 @@ from tqdm import tqdm
 import typer
 import time
 import os
+import re
 
 
 def parse_url_params(url: str) -> dict:
@@ -34,6 +35,21 @@ class Download(object):
         self.xhs_logic: XhsLogic = XhsLogic(proxy=proxy)
         self.save_dir: str = save_dir
         os.makedirs(self.save_dir, exist_ok=True)
+
+    def sanitize_filename(self, filename: str) -> str:
+        """
+        清洗文件名，移除Windows/Linux系统中的非法字符
+        :param filename: 原始文件名
+        :return: 清洗后的文件名
+        """
+        # 定义非法字符的正则表达式（包括控制字符和路径分隔符）
+        # 这涵盖了 Windows 禁止的 \/:*?"<>| 以及常见的控制字符
+        illegal_chars: str = r'[\\/:\*\?"<>\|\r\n\t]'
+        # 将非法字符替换为空格，防止文件名过短
+        cleaned: str = re.sub(illegal_chars, ' ', filename)
+        # 去除首尾空格，并防止文件名为空
+        return cleaned.strip() or "Untitled"
+
 
     def note_veideo(self, url: str) -> None:
         """
@@ -68,7 +84,8 @@ class Download(object):
         save_dir: str = os.path.join(self.save_dir, "video")
         os.makedirs(save_dir, exist_ok=True)
         nickname: str = note_info.get("user", {}).get("nickName", "NONE")  # 作者
-        save_path: str = os.path.join(save_dir, f"【{nickname}】{note_info.get('title')}.mp4")
+        filename: str = slef.sanitize_filename(f"【{nickname}】{note_info.get('title')}.mp4")
+        save_path: str = os.path.join(save_dir, filename)
         # 使用tqdm显示下载进度
         with open(save_path, "wb") as f:
             with tqdm(total=total_size, unit='B', unit_scale=True, desc="下载进度") as pbar:
@@ -105,7 +122,8 @@ class Download(object):
             if response.status_code != 200:
                 logger.warning(f"第 {index} 张图片下载失败！")
                 continue
-            save_path: str = os.path.join(save_dir, f"【{index}】{note_info.get('title')}.jpg")
+            filename: str = slef.sanitize_filename(f"【{index}】{note_info.get('title')}.jpg")
+            save_path: str = os.path.join(save_dir, filename)
             with open(save_path, "wb") as f:
                 f.write(response.content)
             logger.info(f"作者：{nickname}【{note_info.get('title')}】第 {index} 张图片保存成功：{os.path.abspath(save_path)}")
