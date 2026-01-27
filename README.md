@@ -20,6 +20,7 @@
 - DrissionRecord
 - pyexecjs
 - typer
+- tqdm
 
 ## 安装依赖
 
