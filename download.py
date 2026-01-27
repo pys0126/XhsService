@@ -84,7 +84,7 @@ class Download(object):
         save_dir: str = os.path.join(self.save_dir, "video")
         os.makedirs(save_dir, exist_ok=True)
         nickname: str = note_info.get("user", {}).get("nickName", "NONE")  # 作者
-        filename: str = slef.sanitize_filename(f"【{nickname}】{note_info.get('title')}.mp4")
+        filename: str = self.sanitize_filename(f"【{nickname}】{note_info.get('title')}.mp4")
         save_path: str = os.path.join(save_dir, filename)
         # 使用tqdm显示下载进度
         with open(save_path, "wb") as f:
@@ -122,7 +122,7 @@ class Download(object):
             if response.status_code != 200:
                 logger.warning(f"第 {index} 张图片下载失败！")
                 continue
-            filename: str = slef.sanitize_filename(f"【{index}】{note_info.get('title')}.jpg")
+            filename: str = self.sanitize_filename(f"【{index}】{note_info.get('title')}.jpg")
             save_path: str = os.path.join(save_dir, filename)
             with open(save_path, "wb") as f:
                 f.write(response.content)
