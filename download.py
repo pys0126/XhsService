@@ -62,10 +62,11 @@ class Download(object):
             return None
         save_dir: str = os.path.join(self.save_dir, "video")
         os.makedirs(save_dir, exist_ok=True)
-        save_path: str = os.path.join(save_dir, f"{note_info.get('title')}.mp4")
+        nickname: str = note_info.get("user", {}).get("nickName", "NONE")  # 作者
+        save_path: str = os.path.join(save_dir, f"【{nickname}】{note_info.get('title')}.mp4")
         with open(save_path, "wb") as f:
             f.write(response.content)
-        logger.success(f"【{note_info.get('title')}】视频保存成功：{os.path.abspath(save_path)}")
+        logger.success(f"作者：{nickname}【{note_info.get('title')}】视频保存成功：{os.path.abspath(save_path)}")
 
     def note_images(self, url: str) -> None:
         """
@@ -82,9 +83,10 @@ class Download(object):
         # 获取图片URL列表
         note_info: dict = result_json.get("noteData", {})
         image_urls: list = [image.get("url", "") for image in note_info.get("imageList", [])]
-        save_dir: str = os.path.join(self.save_dir, "image", note_info.get("title"))
+        nickname: str = note_info.get("user", {}).get("nickName", "NONE")  # 作者
+        save_dir: str = os.path.join(self.save_dir, "image", nickname)
         os.makedirs(save_dir, exist_ok=True)
-        logger.info(f"【{note_info.get('title')}】已获取到笔记数据，开始下载图片...")
+        logger.info(f"作者：{nickname}【{note_info.get('title')}】已获取到笔记数据，开始下载图片...")
         for index, image_url in enumerate(image_urls, 1):
             response: Response = requests.get(
                 url=image_url,
@@ -93,11 +95,11 @@ class Download(object):
             if response.status_code != 200:
                 logger.warning(f"第 {index} 张图片下载失败！")
                 continue
-            save_path: str = os.path.join(save_dir, f"{index}.jpg")
+            save_path: str = os.path.join(save_dir, f"【{index}】{note_info.get('title')}.jpg")
             with open(save_path, "wb") as f:
                 f.write(response.content)
-            logger.info(f"【{note_info.get('title')}】第 {index} 张图片保存成功：{os.path.abspath(save_path)}")
-        logger.success(f"【{note_info.get('title')}】图片下载完毕：{os.path.abspath(save_dir)}")
+            logger.info(f"作者：{nickname}【{note_info.get('title')}】第 {index} 张图片保存成功：{os.path.abspath(save_path)}")
+        logger.success(f"作者：{nickname}【{note_info.get('title')}】图片下载完毕：{os.path.abspath(save_dir)}")
 
 
 app = typer.Typer(help="XHS下载工具 - UodRad")
